@@ -20,3 +20,9 @@ type Team struct {
 type Project struct {
   Description string
 }
+
+type TeamRequest struct {
+  Team Team
+  Api  string
+  Id   string
+}
