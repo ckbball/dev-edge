@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
   "time"
@@ -19,6 +19,10 @@ func NewTokenService() *TokenService {
   return &TokenService{}
 }
 
+func GetKey() []byte {
+  return key
+}
+
 // CustomClaims is our custom metadata, which will be hashed
 // and sent as the second segment in our JWT
 type CustomClaims struct {
@@ -26,16 +30,8 @@ type CustomClaims struct {
   jwt.StandardClaims
 }
 
-type Authable interface {
-  Decode(token string) (*CustomClaims, error)
-  Encode(user *pb.User) (string, error)
-}
-
-type TokenService struct {
-}
-
 // Decode a token string into a token object
-func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
+func DecodeWithCustomClaims(tokenString string) (*CustomClaims, error) {
 
   // Parse the token
   token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -48,25 +44,4 @@ func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
   } else {
     return nil, err
   }
-}
-
-// Encode a claim into a JWT
-func (srv *TokenService) Encode(user User) (string, error) {
-
-  expireToken := time.Now().Add(time.Hour * 24).Unix()
-
-  // Create the Claims
-  claims := CustomClaims{
-    user,
-    jwt.StandardClaims{
-      ExpiresAt: expireToken,
-      Issuer:    "dev.edge",
-    },
-  }
-
-  // Create token
-  token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-  // Sign token and return
-  return token.SignedString(key)
 }
