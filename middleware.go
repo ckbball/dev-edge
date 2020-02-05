@@ -2,6 +2,7 @@ package main
 
 import (
   "context"
+  "fmt"
   "net/http"
   "strings"
   "time"
@@ -11,8 +12,6 @@ import (
   "github.com/golang/glog"
   "github.com/google/uuid"
   "github.com/sirupsen/logrus"
-
-  "github.com/ckbball/dev-edge/auth"
 )
 
 // allowCORS allows Cross Origin Resoruce Sharing from any origin.
@@ -45,20 +44,20 @@ func preflightHandler(w http.ResponseWriter, r *http.Request) {
 
 func UserAuth(h http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    token, err := request.ParseFromRequest(c.Request, MyAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
-      b := auth.GetKey()
+    token, err := request.ParseFromRequest(r, MyAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+      b := GetKey()
       return b, nil
-    }, request.WithClaims(&auth.CustomClaims{}))
+    }, request.WithClaims(&CustomClaims{}))
 
     if err != nil {
-      http.Error(w, http.StatusText("Unauthorized"), 401)
+      http.Error(w, http.StatusText(401), 401)
       return
     }
 
-    claims, err := auth.DecodeWithCustomClaims(token)
+    claims, err := DecodeWithCustomClaims(token.Raw)
     if err != nil {
-      fmt.Printf(err)
-      http.Error(w, http.StatusText("Unauthorized"), 401)
+      fmt.Println(err)
+      http.Error(w, http.StatusText(401), 401)
       return
     }
 
@@ -132,9 +131,10 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     "http.req.method": r.Method,
     "http.req.id":     requestID.String(),
   })
-  if v, ok := r.Context().Value(ctxKeySessionID{}).(string); ok {
-    log = log.WithField("session", v)
-  }
+  /*
+     if v, ok := r.Context().Value(ctxKeySessionID{}).(string); ok {
+       log = log.WithField("session", v)
+     }*/
   log.Debug("request started")
   defer func() {
     log.WithFields(logrus.Fields{
@@ -148,6 +148,7 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   lh.next.ServeHTTP(rr, r)
 }
 
+/*
 func ensureSessionID(next http.Handler) http.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request) {
     var sessionID string
@@ -170,3 +171,4 @@ func ensureSessionID(next http.Handler) http.HandlerFunc {
     next.ServeHTTP(w, r)
   }
 }
+*/

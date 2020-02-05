@@ -8,14 +8,14 @@ type User struct {
 }
 
 type Team struct {
-  Leader    string
-  Name      string
-  OpenRoles int
-  Skills    []string
-  Size      int
-  Id        string
-  Project   Project
-  Members   []Member
+  Leader     string
+  Name       string
+  OpenRoles  int
+  Skills     []string
+  Size       int
+  Id         string
+  Project    Project
+  LastActive int
 }
 
 type Project struct {
@@ -58,4 +58,9 @@ type FetchRequest struct {
   Role       string
   Level      int
   Technology string
+}
+
+type Response struct {
+  Message string
+  Success bool
 }
