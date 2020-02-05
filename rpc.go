@@ -7,6 +7,7 @@ import (
 )
 
 func (ed *edgeServer) createTeam(ctx context.Context, team Team, creatorId string) error {
+  team.Leader = creatorId
   _, err := teamSvc.NewTeamServiceClient(ed.teamSvcConn).CreateTeam(ctx, &teamSvc.TeamUpsertRequest{
     Api:  "v1",
     Team: team,
