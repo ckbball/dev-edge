@@ -8,28 +8,28 @@ type User struct {
 }
 
 type Team struct {
-  Leader     string
-  Name       string
-  OpenRoles  int
-  Skills     []string
-  Size       int
-  Id         string
-  Project    Project
-  LastActive int
+  Leader     string   `json:"leader"`
+  Name       string   `json:"name"`
+  OpenRoles  int      `json:"open_roles"`
+  Skills     []string `json:"skills"`
+  Size       int      `json:"size"`
+  Id         string   `json:"id"`
+  Project    Project  `json:"project"`
+  LastActive int      `json:"last_active"`
 }
 
 type Project struct {
-  Description string
-  Languages   []string
-  Name        string
-  GitLink     string
-  Complexity  int
-  Duration    int
+  Description string   `json:"description"`
+  Languages   []string `json:"languages"`
+  Name        string   `json:"name"`
+  GitLink     string   `json:"git_link"`
+  Complexity  int      `json:"complexity"`
+  Duration    int      `json:"duration"`
 }
 
 type TeamRequest struct {
-  Team Team
-  Api  string
+  Team Team   `json:"team"`
+  Api  string `json:"api"`
   Id   string
 }
 
