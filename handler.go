@@ -76,3 +76,14 @@ func (ed *edgeServer) createTeamHandler(w http.ResponseWriter, r *http.Request) 
   w.WriteHeader(http.StatusCreated)
   w.Write(marshalledResp)
 }
+
+// Routes to be implemented
+/*
+post: "/v1/teams/{id}/members",
+delete: "/v1/teams/{id}/members/{member_number}",
+post: "/v1/teams/{id}/project",
+get: "/{api}/teams/users/{id}"
+get: "/{api}/myteams"
+get: "/{api}/teams"
+get: "/{api}/teams/{name}"
+*/
