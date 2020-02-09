@@ -1,5 +1,9 @@
 package main
 
+import (
+  teamSvc "github.com/ckbball/dev-team/pkg/api/v1"
+)
+
 type User struct {
   Id       string
   Username string
@@ -16,6 +20,7 @@ type Team struct {
   Id         string   `json:"id"`
   Project    Project  `json:"project"`
   LastActive int      `json:"last_active"`
+  Members    []Member `json:"members"`
 }
 
 type Project struct {
@@ -27,10 +32,22 @@ type Project struct {
   Duration    int      `json:"duration"`
 }
 
+type Member struct {
+  MemberId    string `json:"member_id"`
+  MemberEmail string `json:"member_email"`
+  Role        string `json:"role"`
+}
+
 type TeamRequest struct {
   Team Team   `json:"team"`
   Api  string `json:"api"`
   Id   string
+}
+
+type TeamResponse struct {
+  Team    *teamSvc.Team `json:"team"`
+  Message string        `json:"message"`
+  Success bool          `json:"success"`
 }
 
 type MemberRequest struct {

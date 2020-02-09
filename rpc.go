@@ -89,7 +89,7 @@ func (ed *edgeServer) addMember(ctx context.Context, member *MemberRequest, owne
   return err
 }
 
-func (ed *edgeServer) getTeam(ctx context.Context, teamName string) error {
+func (ed *edgeServer) getTeam(ctx context.Context, teamName string) (*teamSvc.Team, error) {
   // connect to service here
   conn, err := createConn(ctx, ed.teamSvcAddr)
   if err != nil {
@@ -103,9 +103,10 @@ func (ed *edgeServer) getTeam(ctx context.Context, teamName string) error {
     Name: teamName,
   })
   if resp.Status == "error:missing" {
-    return errors.New("team doesn't exist")
+    return nil, errors.New("team doesn't exist")
   }
-  return err
+
+  return resp.Team, err
 
 }
 

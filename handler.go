@@ -126,14 +126,14 @@ func (ed *edgeServer) getTeamHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // call rpc method passing context and team from req
-  err = ed.getTeam(r.Context(), teamName)
+  team, err := ed.getTeam(r.Context(), teamName)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     log.Infof("Error in grpc method. line 132. getTeamHandler(). \nerr: %v", err.Error())
     return
   }
 
-  successfulResponse := &Response{Message: "team retrieved", Success: true}
+  successfulResponse := &TeamResponse{Message: "team retrieved", Success: true, Team: team}
   marshalledResp, err := json.Marshal(successfulResponse)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
