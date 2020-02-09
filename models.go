@@ -34,11 +34,11 @@ type TeamRequest struct {
 }
 
 type MemberRequest struct {
-  TeamId      string
-  Api         string
-  MemberId    string
-  MemberEmail string
-  Role        string
+  TeamId      string `json:"team_id"`
+  Api         string `json:"api"`
+  MemberId    string `json:"member_id"`
+  MemberEmail string `json:"member_email"`
+  Role        string `json:"role"`
 }
 
 type ProjectRequest struct {

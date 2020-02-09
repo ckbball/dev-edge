@@ -12,6 +12,10 @@ import (
   //userSvc "github.com/ckbball/dev-user/pkg/api/v1"
 )
 
+var (
+  apiVersion = "v1"
+)
+
 func createConn(ctx context.Context, addr string) (*grpc.ClientConn, error) {
   conn, err := grpc.DialContext(ctx, addr,
     grpc.WithInsecure(),
@@ -48,11 +52,39 @@ func (ed *edgeServer) createTeam(ctx context.Context, team *Team, creatorId stri
     Project:    protoProject,
   }
   resp, err := teamSvc.NewTeamServiceClient(conn).CreateTeam(ctx, &teamSvc.TeamUpsertRequest{
-    Api:  "v1",
-    Team: svcTeam,
+    Api:    apiVersion,
+    Team:   svcTeam,
+    UserId: creatorId,
   })
   if resp.Status == "error:duplicatename" {
     return errors.New("duplicate team name")
+  } else if resp.Status == "error:maxteamcount" {
+    return errors.New("max team count")
+  }
+  return err
+}
+
+func (ed *edgeServer) addMember(ctx context.Context, member *MemberRequest, ownerId string) error {
+  // connect to service here
+  conn, err := createConn(ctx, ed.teamSvcAddr)
+  if err != nil {
+    for err != nil {
+      conn, err = createConn(ctx, ed.teamSvcAddr)
+    }
+  }
+
+  resp, err := teamSvc.NewTeamServiceClient(conn).AddMember(ctx, &teamSvc.MemberUpsertRequest{
+    Api:         apiVersion,
+    TeamId:      member.TeamId,
+    MemberId:    member.MemberId,
+    MemberEmail: member.MemberEmail,
+    Role:        member.Role,
+    UserId:      ownerId,
+  })
+  if resp.Status == "error:exists" {
+    return errors.New("member exists")
+  } else if resp.Status == "error:maxmembercount" {
+    return errors.New("max member count")
   }
   return err
 }
