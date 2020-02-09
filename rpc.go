@@ -56,3 +56,8 @@ func (ed *edgeServer) createTeam(ctx context.Context, team *Team, creatorId stri
   }
   return err
 }
+
+// add a conversion function here
+// func convertRestModelToRpc(interface, type string type of model to convert)
+
+// func convertRpcModelToRest( interface, type string type of model to convert)
