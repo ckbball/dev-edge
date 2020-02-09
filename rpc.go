@@ -89,6 +89,26 @@ func (ed *edgeServer) addMember(ctx context.Context, member *MemberRequest, owne
   return err
 }
 
+func (ed *edgeServer) getTeam(ctx context.Context, teamName string) error {
+  // connect to service here
+  conn, err := createConn(ctx, ed.teamSvcAddr)
+  if err != nil {
+    for err != nil {
+      conn, err = createConn(ctx, ed.teamSvcAddr)
+    }
+  }
+
+  resp, err := teamSvc.NewTeamServiceClient(conn).GetTeamByTeamName(ctx, &teamSvc.GetByTeamNameRequest{
+    Api:  apiVersion,
+    Name: teamName,
+  })
+  if resp.Status == "error:missing" {
+    return errors.New("team doesn't exist")
+  }
+  return err
+
+}
+
 // add a conversion function here
 // func convertRestModelToRpc(interface, type string type of model to convert)
 

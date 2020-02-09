@@ -111,24 +111,49 @@ func (ed *edgeServer) addMemberHandler(w http.ResponseWriter, r *http.Request) {
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusCreated)
   w.Write(marshalledResp)
-
+  return
 }
 
 func (ed *edgeServer) getTeamHandler(w http.ResponseWriter, r *http.Request) {
-  //log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+  log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 
-  // grab user from context that was passed from auth middleware, mostly just want id for rpc methods.
-  //user := r.Context().Value("user").(User)
+  // grab teamId from url
+  teamName := ""
+  if teamName = chi.URLParam(r, "name"); teamName == "" {
+    http.Error(w, errors.New("no teamName in url.").Error(), http.StatusInternalServerError)
+    log.Infof("Error in grabbing teamName from url. line 124. getTeamHandler(). \nbody: %v", r.Body)
+    return
+  }
+
+  // call rpc method passing context and team from req
+  err = ed.getTeam(r.Context(), teamName)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in grpc method. line 132. getTeamHandler(). \nerr: %v", err.Error())
+    return
+  }
+
+  successfulResponse := &Response{Message: "team retrieved", Success: true}
+  marshalledResp, err := json.Marshal(successfulResponse)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.WithField("error", err).Error("marshall error")
+    log.Infof("Error in marshalling successful response. line 142. getTeamHandler(). \nerr: %v", err.Error())
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(200)
+  w.Write(marshalledResp)
   return
 }
 
 // Routes to be implemented
 /*
-post: "/v1/teams/{id}/members",
-delete: "/v1/teams/{id}/members/{member_number}",
-post: "/v1/teams/{id}/project",
-get: "/{api}/teams/users/{id}"
-get: "/{api}/myteams"
-get: "/{api}/teams"
-get: "/{api}/teams/{name}"
+delete: "/v1/teams/{id}/members/{user_id}", delete member
+post: "/v1/teams/{id}/project", upsert project
+get: "/{api}/teams/users/{id}" get teams by user id
+get: "/{api}/myteams" get teams for logged in user
+get: "/{api}/teams" get list of teams
+get: "/{api}/teams/{name}" get full info for a specific team.
+post: "/{api}/teams/{name}" update team(can only update skills)
 */
