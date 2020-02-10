@@ -147,13 +147,65 @@ func (ed *edgeServer) getTeamHandler(w http.ResponseWriter, r *http.Request) {
   return
 }
 
+func (ed *edgeServer) upsertProjectHandler(w http.ResponseWriter, r *http.Request) {
+  log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+
+  // grab teamId from url
+  teamId := ""
+  if teamId = chi.URLParam(r, "teamID"); teamId == "" {
+    http.Error(w, errors.New("no teamID in url.").Error(), http.StatusInternalServerError)
+    log.Infof("Error in grabbing teamID from url. line 157. upsertProjectHandler(). \nbody: %v", r.Body)
+    return
+  }
+
+  // grab project from body
+  // extract project from json body.
+  var newProject ProjectRequest
+  reqBody, err := ioutil.ReadAll(r.Body)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in reading request body. line 167. createTeamHandler(). \nbody: %v", r.Body)
+    return
+  }
+  newProject.TeamId = teamID
+  // unmarshal json body into project request struct
+  err = json.Unmarshal(reqBody, &newProject)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in unmarshalling body. line 175. upsertProjectHandler(). \nbody: %v", reqBody)
+    return
+  }
+
+  // call rpc method
+  err = ed.upsertProject(r.Context(), teamName)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in grpc method. line 132. upsertProjectHandler(). \nerr: %v", err.Error())
+    return
+  }
+
+  // send appropriate response and return
+  successfulResponse := &Response{Message: "project upserted", Success: true}
+  marshalledResp, err := json.Marshal(successfulResponse)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.WithField("error", err).Error("marshall error")
+    log.Infof("Error in marshalling successful response. line 193. upsertProjectHandler(). \nerr: %v", err.Error())
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(201)
+  w.Write(marshalledResp)
+  return
+}
+
 // Routes to be implemented
 /*
 delete: "/v1/teams/{id}/members/{user_id}", delete member
-post: "/v1/teams/{id}/project", upsert project
+post: "/v1/teams/{id}/project", upsert project *********
 get: "/{api}/teams/users/{id}" get teams by user id
 get: "/{api}/myteams" get teams for logged in user
 get: "/{api}/teams" get list of teams
-get: "/{api}/teams/{name}" get full info for a specific team.
-post: "/{api}/teams/{name}" update team(can only update skills)
+
+
 */

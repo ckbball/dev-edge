@@ -110,6 +110,25 @@ func (ed *edgeServer) getTeam(ctx context.Context, teamName string) (*teamSvc.Te
 
 }
 
+func (ed *edgeServer) upsertProject(ctx context.Context, project *ProjectRequest, ownerId, teamId string) error {
+  // connect to service here
+  conn, err := createConn(ctx, ed.teamSvcAddr)
+  if err != nil {
+    for err != nil {
+      conn, err = createConn(ctx, ed.teamSvcAddr)
+    }
+  }
+
+  _, err := teamSvc.NewTeamServiceClient(conn).UpsertTeamProject(ctx, &teamSvc.ProjectUpsertRequest{
+    Api:     apiVersion,
+    TeamId:  teamId,
+    UserId:  ownerId,
+    Project: project.Project,
+  })
+
+  return err
+}
+
 // add a conversion function here
 // func convertRestModelToRpc(interface, type string type of model to convert)
 
