@@ -150,6 +150,9 @@ func (ed *edgeServer) getTeamHandler(w http.ResponseWriter, r *http.Request) {
 func (ed *edgeServer) upsertProjectHandler(w http.ResponseWriter, r *http.Request) {
   log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 
+  // grab user from context that was passed from auth middleware, mostly just want id for rpc methods.
+  user := r.Context().Value("user").(User)
+
   // grab teamId from url
   teamId := ""
   if teamId = chi.URLParam(r, "teamID"); teamId == "" {
@@ -167,7 +170,7 @@ func (ed *edgeServer) upsertProjectHandler(w http.ResponseWriter, r *http.Reques
     log.Infof("Error in reading request body. line 167. createTeamHandler(). \nbody: %v", r.Body)
     return
   }
-  newProject.TeamId = teamID
+  newProject.TeamId = teamId
   // unmarshal json body into project request struct
   err = json.Unmarshal(reqBody, &newProject)
   if err != nil {
@@ -177,7 +180,7 @@ func (ed *edgeServer) upsertProjectHandler(w http.ResponseWriter, r *http.Reques
   }
 
   // call rpc method
-  err = ed.upsertProject(r.Context(), teamName)
+  err = ed.upsertProject(r.Context(), &newProject.Project, user.Id, teamId)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     log.Infof("Error in grpc method. line 132. upsertProjectHandler(). \nerr: %v", err.Error())

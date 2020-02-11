@@ -110,7 +110,7 @@ func (ed *edgeServer) getTeam(ctx context.Context, teamName string) (*teamSvc.Te
 
 }
 
-func (ed *edgeServer) upsertProject(ctx context.Context, project *ProjectRequest, ownerId, teamId string) error {
+func (ed *edgeServer) upsertProject(ctx context.Context, project *Project, ownerId, teamId string) error {
   // connect to service here
   conn, err := createConn(ctx, ed.teamSvcAddr)
   if err != nil {
@@ -119,11 +119,18 @@ func (ed *edgeServer) upsertProject(ctx context.Context, project *ProjectRequest
     }
   }
 
-  _, err := teamSvc.NewTeamServiceClient(conn).UpsertTeamProject(ctx, &teamSvc.ProjectUpsertRequest{
-    Api:     apiVersion,
-    TeamId:  teamId,
-    UserId:  ownerId,
-    Project: project.Project,
+  _, err = teamSvc.NewTeamServiceClient(conn).UpsertTeamProject(ctx, &teamSvc.ProjectUpsertRequest{
+    Api:    apiVersion,
+    TeamId: teamId,
+    UserId: ownerId,
+    Project: &teamSvc.Project{
+      Description: project.Description,
+      Languages:   project.Languages,
+      Name:        project.Name,
+      GithubLink:  project.GitLink,
+      Complexity:  int32(project.Complexity),
+      Duration:    int32(project.Duration),
+    },
   })
 
   return err
