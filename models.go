@@ -50,6 +50,12 @@ type TeamResponse struct {
   Success bool          `json:"success"`
 }
 
+type TeamsResponse struct {
+  Teams   []*teamSvc.Team `json:"teams"`
+  Message string          `json:"message"`
+  Success bool            `json:"success"`
+}
+
 type MemberRequest struct {
   TeamId      string `json:"team_id"`
   Api         string `json:"api"`

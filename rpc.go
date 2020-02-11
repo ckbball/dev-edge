@@ -136,6 +136,27 @@ func (ed *edgeServer) upsertProject(ctx context.Context, project *Project, owner
   return err
 }
 
+func (ed *edgeServer) getTeamsByUser(ctx context.Context, userId string) ([]*teamSvc.Team, error) {
+  // connect to service here
+  conn, err := createConn(ctx, ed.teamSvcAddr)
+  if err != nil {
+    for err != nil {
+      conn, err = createConn(ctx, ed.teamSvcAddr)
+    }
+  }
+
+  resp, err := teamSvc.NewTeamServiceClient(conn).GetTeamsByUserId(ctx, &teamSvc.GetByUserIdRequest{
+    Api: apiVersion,
+    Id:  userId,
+  })
+  if resp.Status == "empty" {
+    return []*teamSvc.Team{}, nil
+  }
+
+  return resp.Teams, err
+
+}
+
 // add a conversion function here
 // func convertRestModelToRpc(interface, type string type of model to convert)
 

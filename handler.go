@@ -202,11 +202,48 @@ func (ed *edgeServer) upsertProjectHandler(w http.ResponseWriter, r *http.Reques
   return
 }
 
+func (ed *edgeServer) getTeamsByUserHandler(w http.ResponseWriter, r *http.Request) {
+  log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+
+  // grab userId from url
+  userId := ""
+  if userId = chi.URLParam(r, "id"); userId == "" {
+    http.Error(w, errors.New("no userId in url.").Error(), http.StatusInternalServerError)
+    log.Infof("Error in grabbing userId from url. line 215. getTeamsByUserHandler(). \nbody: %v", r.Body)
+    return
+  }
+
+  // call rpc method
+  teams, err := ed.getTeamsByUser(r.Context(), userId)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in grpc method. line 223. getTeamsByUser(). \nerr: %v", err.Error())
+    return
+  }
+
+  // send appropriate response and return
+  successfulResponse := &TeamsResponse{Message: "teams retrieved", Success: true, Teams: teams}
+  if len(teams) == 0 {
+    successfulResponse.Message = "teams empty"
+  }
+
+  marshalledResp, err := json.Marshal(successfulResponse)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.WithField("error", err).Error("marshall error")
+    log.Infof("Error in marshalling successful response. line 233. getTeamsByUser(). \nerr: %v", err.Error())
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(200)
+  w.Write(marshalledResp)
+  return
+}
+
 // Routes to be implemented
 /*
 delete: "/v1/teams/{id}/members/{user_id}", delete member
-post: "/v1/teams/{id}/project", upsert project *********
-get: "/{api}/teams/users/{id}" get teams by user id
+get: "/{api}/teams/users/{id}" get teams by user id ********
 get: "/{api}/myteams" get teams for logged in user
 get: "/{api}/teams" get list of teams
 
