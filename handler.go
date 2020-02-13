@@ -240,10 +240,45 @@ func (ed *edgeServer) getTeamsByUserHandler(w http.ResponseWriter, r *http.Reque
   return
 }
 
+func (ed *edgeServer) getMyTeamsHandler(w http.ResponseWriter, r *http.Request) {
+  log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+
+  // grab user from context that was passed from auth middleware, mostly just want id for rpc methods.
+  user := r.Context().Value("user").(User)
+
+  // call rpc method
+  teams, err := ed.getMyTeams(r.Context(), user.Id)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in grpc method. line 253. getMyTeams(). \nerr: %v", err.Error())
+    return
+  }
+
+  // send appropriate response and return
+  successfulResponse := &TeamsResponse{Message: "teams retrieved", Success: true, Teams: teams}
+  if len(teams) == 0 {
+    successfulResponse.Message = "teams empty"
+  }
+
+  marshalledResp, err := json.Marshal(successfulResponse)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.WithField("error", err).Error("marshall error")
+    log.Infof("Error in marshalling successful response. line 267. getMyTeams(). \nerr: %v", err.Error())
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(200)
+  w.Write(marshalledResp)
+  return
+
+}
+
 // Routes to be implemented
 /*
 delete: "/v1/teams/{id}/members/{user_id}", delete member
-get: "/{api}/teams/users/{id}" get teams by user id ********
+ delete: "/v1/teams/{id}", delete team
+ delete: "/v1/teams/{teamId}/members/{memberId}", remove member
 get: "/{api}/myteams" get teams for logged in user
 get: "/{api}/teams" get list of teams
 
