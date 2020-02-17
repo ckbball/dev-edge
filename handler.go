@@ -5,6 +5,7 @@ import (
   "errors"
   "io/ioutil"
   "net/http"
+  "strconv"
   //"time"
 
   // "github.com/pkg/errors"
@@ -274,12 +275,87 @@ func (ed *edgeServer) getMyTeamsHandler(w http.ResponseWriter, r *http.Request) 
 
 }
 
+func (ed *edgeServer) getTeamsHandler(w http.ResponseWriter, r *http.Request) {
+  log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+
+  page := 1
+  limit := 10
+  role := ""
+  level := ""
+  technology := ""
+
+  // extract query params
+  // extract page to an int64
+  if r.URL.Query()["page"] != nil {
+    page, err := strconv.Atoi(r.URL.Query()["page"][0])
+    if err != nil {
+      http.Error(w, err.Error("Invalid page query parameter"), http.StatusInternalServerError)
+      log.Infof("Error in grpc method. line 291. getTeams(). \nerr: %v", err.Error())
+      return
+    }
+    page = int64(page)
+  }
+  // extract limit to an int64
+  if r.URL.Query()["limit"] != nil {
+    limit, err := strconv.Atoi(r.URL.Query()["limit"][0])
+    if err != nil {
+      http.Error(w, err.Error("Invalid limit query parameter"), http.StatusInternalServerError)
+      log.Infof("Error in grpc method. line 291. getTeams(). \nerr: %v", err.Error())
+      return
+    }
+    limit = int64(limit)
+  }
+  // extract role to a string
+  if r.URL.Query()["role"] != nil {
+    role = r.URL.Query()["role"][0]
+  }
+  // extract level to an int64
+  if r.URL.Query()["level"] != nil {
+    level, err := strconv.Atoi(r.URL.Query()["level"][0])
+    if err != nil {
+      http.Error(w, err.Error("Invalid level query parameter"), http.StatusInternalServerError)
+      log.Infof("Error in grpc method. line 311. getTeams(). \nerr: %v", err.Error())
+      return
+    }
+    level = int64(level)
+  }
+  // extract technology to a string
+  if r.URL.Query()["technology"] != nil {
+    technology = r.URL.Query()["technology"][0]
+  }
+
+  // call rpc method
+  teams, err := ed.getTeams(r.Context(), role, level, technology, page, limit)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Infof("Error in grpc method. line 312. getTeams(). \nerr: %v", err.Error())
+    return
+  }
+
+  // send appropriate response and return
+  successfulResponse := &TeamsResponse{Message: "teams retrieved", Success: true, Teams: teams}
+  if len(teams) == 0 {
+    successfulResponse.Message = "teams empty"
+  }
+
+  marshalledResp, err := json.Marshal(successfulResponse)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.WithField("error", err).Error("marshall error")
+    log.Infof("Error in marshalling successful response. line 323. getTeams(). \nerr: %v", err.Error())
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(200)
+  w.Write(marshalledResp)
+  return
+}
+
 // Routes to be implemented
 /*
 delete: "/v1/teams/{id}/members/{user_id}", delete member
- delete: "/v1/teams/{id}", delete team
- delete: "/v1/teams/{teamId}/members/{memberId}", remove member
-get: "/{api}/myteams" get teams for logged in user
+delete: "/v1/teams/{id}", delete team
+delete: "/v1/teams/{teamId}/members/{memberId}", remove member
 get: "/{api}/teams" get list of teams
 
 
