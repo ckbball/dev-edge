@@ -89,6 +89,7 @@ func teamRouter(service *edgeServer) chi.Router {
   })
   r.Get("/teams/users/{id}", service.getTeamsByUserHandler)
   r.Get("/teams/{name}", service.getTeamHandler)
+  r.Get("/teams", service.getTeamsHandler)
 
   return r
 }

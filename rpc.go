@@ -178,7 +178,7 @@ func (ed *edgeServer) getMyTeams(ctx context.Context, userId string) ([]*teamSvc
 
 }
 
-func (ed *edgeServer) getTeams(ctx context.Context, role, level, technology string, page, limit int64) ([]*teamSvc.Team, error) {
+func (ed *edgeServer) getTeams(ctx context.Context, role, technology string, page, limit, level int64) ([]*teamSvc.Team, error) {
   // connect to service here
   conn, err := createConn(ctx, ed.teamSvcAddr)
   if err != nil {

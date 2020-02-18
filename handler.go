@@ -278,32 +278,32 @@ func (ed *edgeServer) getMyTeamsHandler(w http.ResponseWriter, r *http.Request) 
 func (ed *edgeServer) getTeamsHandler(w http.ResponseWriter, r *http.Request) {
   log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 
-  page := 1
-  limit := 10
+  page := int64(1)
+  limit := int64(10)
   role := ""
-  level := ""
+  level := int64(0)
   technology := ""
 
   // extract query params
   // extract page to an int64
   if r.URL.Query()["page"] != nil {
-    page, err := strconv.Atoi(r.URL.Query()["page"][0])
+    temp, err := strconv.Atoi(r.URL.Query()["page"][0])
     if err != nil {
-      http.Error(w, err.Error("Invalid page query parameter"), http.StatusInternalServerError)
+      http.Error(w, err.Error(), http.StatusInternalServerError)
       log.Infof("Error in grpc method. line 291. getTeams(). \nerr: %v", err.Error())
       return
     }
-    page = int64(page)
+    page = int64(temp)
   }
   // extract limit to an int64
   if r.URL.Query()["limit"] != nil {
-    limit, err := strconv.Atoi(r.URL.Query()["limit"][0])
+    temp, err := strconv.Atoi(r.URL.Query()["limit"][0])
     if err != nil {
-      http.Error(w, err.Error("Invalid limit query parameter"), http.StatusInternalServerError)
+      http.Error(w, err.Error(), http.StatusInternalServerError)
       log.Infof("Error in grpc method. line 291. getTeams(). \nerr: %v", err.Error())
       return
     }
-    limit = int64(limit)
+    limit = int64(temp)
   }
   // extract role to a string
   if r.URL.Query()["role"] != nil {
@@ -311,13 +311,13 @@ func (ed *edgeServer) getTeamsHandler(w http.ResponseWriter, r *http.Request) {
   }
   // extract level to an int64
   if r.URL.Query()["level"] != nil {
-    level, err := strconv.Atoi(r.URL.Query()["level"][0])
+    temp, err := strconv.Atoi(r.URL.Query()["level"][0])
     if err != nil {
-      http.Error(w, err.Error("Invalid level query parameter"), http.StatusInternalServerError)
-      log.Infof("Error in grpc method. line 311. getTeams(). \nerr: %v", err.Error())
+      http.Error(w, err.Error(), http.StatusInternalServerError)
+      log.Infof("Error in grpc method. line 317. getTeams(). \nerr: %v", err.Error())
       return
     }
-    level = int64(level)
+    level = int64(temp)
   }
   // extract technology to a string
   if r.URL.Query()["technology"] != nil {
@@ -325,7 +325,7 @@ func (ed *edgeServer) getTeamsHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // call rpc method
-  teams, err := ed.getTeams(r.Context(), role, level, technology, page, limit)
+  teams, err := ed.getTeams(r.Context(), role, technology, page, limit, level)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     log.Infof("Error in grpc method. line 312. getTeams(). \nerr: %v", err.Error())
